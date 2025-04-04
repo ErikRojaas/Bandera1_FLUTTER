@@ -14,26 +14,40 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
-    // Inicializa el controlador de la animación
+    // Inicializa el controlador de la animación del QR
     _controller = AnimationController(
-      duration: const Duration(seconds: 2), // Duración de la animación
+      duration: const Duration(milliseconds: 1500),
       vsync: this,
-    )..repeat(reverse: true); // Hace que la animación repita (hacia adelante y hacia atrás)
+    )..repeat(reverse: true); // Repite la animación (ida y vuelta)
 
-    // Escala de la animación
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut, // Efecto de aceleración/desaceleración
-    ));
+    // Animación de escala para el QR
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Animación de color para el círculo rojo
+    _colorAnimation = ColorTween(
+      begin: const Color.fromARGB(71, 238, 21, 5).withOpacity(0.6),
+      end: const Color.fromARGB(255, 243, 3, 3).withOpacity(1.0),
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose(); // Libera los recursos del controlador cuando ya no se necesite
+    _controller.dispose();
     super.dispose();
   }
 
@@ -72,7 +86,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
               ),
               const SizedBox(height: 20),
 
-              // Container con animación de escala
+              // QR con animación de escala
               AnimatedBuilder(
                 animation: _scaleAnimation,
                 builder: (context, child) {
@@ -94,7 +108,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                         color: Colors.white,
                       ),
                       child: Image.network(
-                        "http://localhost:8080/qrcode.png", // URL del QR, cambiar a la del servidor
+                        "https://bandera1.ieti.site/qrcode.png",
                         width: 250,
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
@@ -111,9 +125,9 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
               const SizedBox(height: 30),
 
-              // Botón con el círculo rojo en la esquina superior derecha
+              // Botón con círculo animado
               Stack(
-                clipBehavior: Clip.none, 
+                clipBehavior: Clip.none,
                 alignment: Alignment.topRight,
                 children: [
                   ElevatedButton(
@@ -133,17 +147,23 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                       style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
-                  // Círculo rojo fuera del botón, en la esquina superior derecha
+
+                  // Círculo rojo animado en la esquina superior derecha
                   Positioned(
-                    top: -8, 
+                    top: -8,
                     right: -8,
-                    child: Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        shape: BoxShape.circle,
-                      ),
+                    child: AnimatedBuilder(
+                      animation: _colorAnimation,
+                      builder: (context, child) {
+                        return Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            color: _colorAnimation.value,
+                            shape: BoxShape.circle,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
