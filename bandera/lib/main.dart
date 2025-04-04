@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import 'package:get_it/get_it.dart';
+import 'package:bandera/Utils/ServerUtils.dart';
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  final getIt = GetIt.instance;
+  //TODO: add providers here to getIt
+  //exemple: getIt.registerSingleton<PlayerProvider>(PlayerProvider());
+  ServerUtils.connectToServer(onDisconnect: null);
+
+  runApp(MultiProvider(
+    providers: [],
+    child: const MyApp(),
+  ));
 }
+
+
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
