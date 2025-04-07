@@ -15,8 +15,6 @@ void main() {
   ));
 }
 
-
-
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -121,7 +119,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                         color: Colors.white,
                       ),
                       child: Image.network(
-                        "https://bandera1.ieti.site/qrcode.png",
+                        "https://bandera1.ieti.site/public/qrcode.png",
                         width: 250,
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;

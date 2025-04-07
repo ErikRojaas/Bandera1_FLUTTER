@@ -2,26 +2,52 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:get_it/get_it.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/html.dart' as html;
+import 'package:web_socket_channel/io.dart' as io;
 import 'package:bandera/Models/ServerMessage.dart';
-
+import 'package:flutter/foundation.dart';
 
 class ServerUtils {
-  static const String host = "bandera1.ieti.site";
+  // Use the same domain as the web app is being served from
+  // This avoids CORS issues when running in the browser
+  static String get host {
+    // In web, we need to use dart:html to get the current hostname
+    if (kIsWeb) {
+      // Import this at the top: import 'dart:html' as html;
+      return Uri.base.host; // Gets current hostname without importing dart:html directly
+    } else {
+      return "bandera1.ieti.site"; // Use specific domain on mobile
+    }
+  }
+  // static const String host = "localhost";
+  // static const int port = 8080;
   static const int port = 443;
-  //static const String host = "localhost";
-  //static const int port = 8080;
+
   static WebSocketChannel? _channel;
   static StreamSubscription<dynamic>? _subscription;
   static Function? _onDisconnect;
-
+  
+  // Connect to the WebSocket server
   static Future<void> connectToServer({Function? onDisconnect}) async {
     try {
       _onDisconnect = onDisconnect;
-      final uri = Uri.parse('wss://$host:$port');
-      _channel = await IOWebSocketChannel.connect(uri);
-      print('Connected to server at $uri');
       
+      // Create a proper WebSocket URI
+      // Note: In web, it uses the same domain but with wss:// protocol
+      final secure = port == 443;
+      final protocol = secure ? 'wss' : 'ws';
+      final uri = Uri.parse('$protocol://$host${port == 443 || port == 80 ? '' : ':$port'}');
+      
+      // Choose the appropriate WebSocket implementation
+     if (kIsWeb) {
+        _channel = html.HtmlWebSocketChannel.connect(uri.toString());
+        print('Web: Connected to server at $uri');
+      } else {
+        _channel = io.IOWebSocketChannel.connect(uri);
+        print('Mobile: Connected to server at $uri');
+      }
+      
+      // Set up the listener for incoming messages
       _subscription = _channel!.stream.listen(
         _handleRawMessage,
         onDone: _handleDisconnect,
@@ -51,9 +77,7 @@ class ServerUtils {
     _channel?.sink.close();
     _channel = null;
     print('Disconnected from server');
-    if (_onDisconnect != null) {
-      _onDisconnect!();
-    }
+    _onDisconnect?.call();
   }
 
   static Future<String> sendMessage(ServerMessage message) async {
