@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:bandera/Utils/ServerUtils.dart';
+import 'package:bandera/Providers/ServerProvider.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
   final getIt = GetIt.instance;
-  //TODO: add providers here to getIt
-  //exemple: getIt.registerSingleton<PlayerProvider>(PlayerProvider());
-  ServerUtils.connectToServer(onDisconnect: null);
+  getIt.registerSingleton<ServerProvider>(ServerProvider());
+
+  ServerUtils.connectToServer(onDisconnect: () {
+    print("Desconectado del servidor.");
+  });
 
   runApp(MultiProvider(
-    providers: [],
+    providers: [
+      ChangeNotifierProvider(create: (_) => getIt<ServerProvider>()),
+    ],
     child: const MyApp(),
   ));
 }
@@ -82,105 +88,130 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
           backgroundColor: Colors.blueAccent,
           centerTitle: true,
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                "Escanea el código QR y descarga la APK \npara unirte a la partida!",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 100),
+                  child: SizedBox(
+                    width: 400, // Puedes ajustar este ancho si quieres más o menos espacio
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Escanea el código QR y descarga la APK \npara unirte a la partida!",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // QR con animación de escala
+                        AnimatedBuilder(
+                          animation: _scaleAnimation,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: _scaleAnimation.value,
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.blueAccent, width: 4),
+                                  borderRadius: BorderRadius.circular(10),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 8,
+                                      spreadRadius: 2,
+                                      offset: const Offset(4, 4),
+                                    ),
+                                  ],
+                                  color: Colors.white,
+                                ),
+                                child: Image.network(
+                                  "https://bandera1.ieti.site/public/qrcode.png",
+                                  width: 250,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const CircularProgressIndicator();
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Text("No se pudo cargar el QR.");
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Botón con círculo animado
+                        Stack(
+                          clipBehavior: Clip.none,
+                          alignment: Alignment.center,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                print("Ir a Ver Partida en Directo");
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                backgroundColor: Colors.blueAccent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                elevation: 5,
+                              ),
+                              child: const Text(
+                                "Ver Partida en Directo",
+                                style: TextStyle(fontSize: 16, color: Colors.white),
+                              ),
+                            ),
+                            Positioned(
+                              top: -8,
+                              left: -8,
+                              child: AnimatedBuilder(
+                                animation: _colorAnimation,
+                                builder: (context, child) {
+                                  return Container(
+                                    width: 18,
+                                    height: 18,
+                                    decoration: BoxDecoration(
+                                      color: _colorAnimation.value,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
 
-              // QR con animación de escala
-              AnimatedBuilder(
-                animation: _scaleAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueAccent, width: 4),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                            offset: const Offset(4, 4),
-                          ),
-                        ],
-                        color: Colors.white,
-                      ),
-                      child: Image.network(
-                        "https://bandera1.ieti.site/public/qrcode.png",
-                        width: 250,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const CircularProgressIndicator();
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Text("No se pudo cargar el QR.");
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 30),
-
-              // Botón con círculo animado
-              Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.topRight,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      print("Ir a Ver Partida en Directo");
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      backgroundColor: Colors.blueAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: const Text(
-                      "Ver Partida en Directo",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                // Cuadro derecho expandido
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 300, right: 100),
+                    height: 600, 
+                    width: 600,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      border: Border.all(color: Colors.black, width: 2),
                     ),
                   ),
-
-                  // Círculo rojo animado en la esquina superior derecha
-                  Positioned(
-                    top: -8,
-                    right: -8,
-                    child: AnimatedBuilder(
-                      animation: _colorAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: _colorAnimation.value,
-                            shape: BoxShape.circle,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
