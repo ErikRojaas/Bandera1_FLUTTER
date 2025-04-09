@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:bandera/Utils/ServerUtils.dart';
-import 'package:bandera/Providers/ServerProvider.dart';
+import 'package:bandera/Providers/PlayerProvider.dart';
+import 'package:bandera/Widgets/PlayerWidget.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   final getIt = GetIt.instance;
-  getIt.registerSingleton<ServerProvider>(ServerProvider());
+  getIt.registerSingleton<PlayerProvider>(PlayerProvider());
 
   ServerUtils.connectToServer(onDisconnect: () {
     print("Desconectado del servidor.");
@@ -15,7 +17,7 @@ void main() {
 
   runApp(MultiProvider(
     providers: [
-      ChangeNotifierProvider(create: (_) => getIt<ServerProvider>()),
+      ChangeNotifierProvider(create: (_) => getIt<PlayerProvider>()),
     ],
     child: const MyApp(),
   ));
@@ -206,6 +208,21 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                     decoration: BoxDecoration(
                       color: Colors.transparent,
                       border: Border.all(color: Colors.black, width: 2),
+                    ),
+                    child: Consumer<PlayerProvider>(
+                      builder: (context, playerProvider, child) {
+                        return Stack(
+                          children: playerProvider.players.values.map((player) {
+                            return PlayerWidget(
+                              player: player,
+                              containerWidth: 600,
+                              containerHeight: 600,
+                              gameWidth: 1000.0,  // Adjust this based on your actual game space width
+                              gameHeight: 1000.0, // Adjust this based on your actual game space height
+                            );
+                          }).toList(),
+                        );
+                      },
                     ),
                   ),
                 ),

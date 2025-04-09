@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:bandera/Providers/PlayerProvider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/html.dart' as html;
 import 'package:web_socket_channel/io.dart' as io;
 import 'package:bandera/Models/ServerMessage.dart';
 import 'package:flutter/foundation.dart';
+
 
 class ServerUtils {
   // Use the same domain as the web app is being served from
@@ -91,6 +93,7 @@ class ServerUtils {
   }
 
   static void _handleRawMessage(dynamic data) {
+    print("data: " + data.toString());
     try {
       final String stringData = data.toString();
       final Map<String, dynamic> jsonData = jsonDecode(stringData);
@@ -102,7 +105,46 @@ class ServerUtils {
   }
 
   static void _handleServerMessage(ServerMessage message) {
-    final getIt = GetIt.instance;
     
+    final getIt = GetIt.instance;
+    PlayerProvider playerProvider = getIt<PlayerProvider>();
+    switch (message.type) {
+      case 'update':
+        
+        Map<String, dynamic> data = message.data;
+        List<Map<String, dynamic>> allObjects = [];
+        
+        // Process players data
+        if (data['players'] is List) {
+          try {
+            List<Map<String, dynamic>> players = List<Map<String, dynamic>>.from(data['players']);
+            allObjects.addAll(players);
+          } catch (e) {
+            print('Error parsing players data: $e');
+          }
+        }
+        
+        // Process keys data
+        if (data['keys'] is List) {
+          try {
+            List<Map<String, dynamic>> keys = List<Map<String, dynamic>>.from(data['keys']);
+            // Convert keys to player format with special ID prefix
+            List<Map<String, dynamic>> keyPlayers = keys.map((key) {
+              return {
+                'id': 'key_${key['id']}',
+                'x': key['x'],
+                'y': key['y']
+              };
+            }).toList();
+            allObjects.addAll(keyPlayers);
+          } catch (e) {
+            print('Error parsing keys data: $e');
+          }
+        }
+        
+        // Update the player provider with all objects
+        playerProvider.update(allObjects);
+        break;
+    }
   }
 }
