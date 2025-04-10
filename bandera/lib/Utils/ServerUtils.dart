@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:bandera/Providers/PlayerProvider.dart';
+import 'package:bandera/Providers/KeyProvider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/html.dart' as html;
@@ -23,7 +24,7 @@ class ServerUtils {
   }
   // static const String host = "localhost";
   // static const int port = 8080;
-  static const int port = 443;
+  static const int port = 8081;
 
   static WebSocketChannel? _channel;
   static StreamSubscription<dynamic>? _subscription;
@@ -105,12 +106,12 @@ class ServerUtils {
   }
 
   static void _handleServerMessage(ServerMessage message) {
-    
     final getIt = GetIt.instance;
     PlayerProvider playerProvider = getIt<PlayerProvider>();
+    KeyProvider keyProvider = getIt<KeyProvider>();
+    
     switch (message.type) {
       case 'update':
-        
         Map<String, dynamic> data = message.data;
         List<Map<String, dynamic>> allObjects = [];
         
@@ -142,8 +143,9 @@ class ServerUtils {
           }
         }
         
-        // Update the player provider with all objects
+        // Update both providers with all objects
         playerProvider.update(allObjects);
+        keyProvider.update(allObjects);
         break;
     }
   }

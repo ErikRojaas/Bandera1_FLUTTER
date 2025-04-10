@@ -21,28 +21,38 @@ class PlayerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final double scale = 0.15;
     
-    final double scaledX = player.x * (containerWidth / gameWidth);
-    final double scaledY = player.y * (containerHeight / gameHeight);
+    // Get the center point of the container
+    final double centerX = containerWidth / 2;
+    final double centerY = containerHeight / 2;
     
-    // Determine if this is a player or a key based on ID
-    final bool isKey = player.id.toString().startsWith('key_');
+    // Calculate scaling factor (use the same value for both axes to maintain aspect ratio)
+    final double scaleFactor = containerWidth / gameWidth;
     
+    // Calculate position with (0,0) at center
+    // X-axis: right positive, left negative from center
+    // Y-axis: up positive, down negative from center
+    final double posX = centerX + (player.x * scaleFactor);
+    final double posY = centerY - (player.y * scaleFactor); // Invert Y-axis
+    
+    // Calculate icon size
+    final double iconWidth = 100 * scale;
+    final double iconHeight = 100 * scale;
+    
+    // Position icon so its center is at the calculated position
     return Positioned(
-      left: scaledX,
-      top: scaledY,
-      child: Transform.scale(
-        scale: scale,
-        child: Container(
-          width: 100, // Increased from 50 to 100
-          height: 100, // Increased from 50 to 100
-          decoration: BoxDecoration(
-            color: isKey ? Colors.yellow : Colors.blue,
-            shape: isKey ? BoxShape.rectangle : BoxShape.circle,
-            border: Border.all(color: Colors.black, width: 2),
-          ),
-          child: isKey 
-            ? const Icon(Icons.key, color: Colors.black, size: 60) // Increased icon size
-            : const Icon(Icons.person, color: Colors.white, size: 60), // Increased icon size
+      // Offset by half the icon size to center it on the point
+      left: posX - (iconWidth / 2),
+      top: posY - (iconHeight / 2),
+      child: Container(
+        width: iconWidth,
+        height: iconHeight,
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.black, width: 2),
+        ),
+        child: const Center(
+          child: Icon(Icons.person, color: Colors.white, size: 20),
         ),
       ),
     );

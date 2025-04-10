@@ -3,13 +3,21 @@ import 'package:provider/provider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:bandera/Utils/ServerUtils.dart';
 import 'package:bandera/Providers/PlayerProvider.dart';
+import 'package:bandera/Providers/KeyProvider.dart';
 import 'package:bandera/Widgets/PlayerWidget.dart';
+import 'package:bandera/Widgets/KeyWidget.dart';
+import 'package:flame/flame.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Flame and load images
+  await Flame.device.fullScreen();
+  await Flame.images.loadAll(['key.png']);  // Just the filename, not the path
 
   final getIt = GetIt.instance;
   getIt.registerSingleton<PlayerProvider>(PlayerProvider());
+  getIt.registerSingleton<KeyProvider>(KeyProvider());
 
   ServerUtils.connectToServer(onDisconnect: () {
     print("Desconectado del servidor.");
@@ -18,6 +26,7 @@ void main() {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => getIt<PlayerProvider>()),
+      ChangeNotifierProvider(create: (_) => getIt<KeyProvider>()),
     ],
     child: const MyApp(),
   ));
@@ -98,7 +107,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                 Padding(
                   padding: const EdgeInsets.only(left: 100),
                   child: SizedBox(
-                    width: 400, // Puedes ajustar este ancho si quieres más o menos espacio
+                    width: 400,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -201,28 +210,66 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
                 // Cuadro derecho expandido
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 300, right: 100),
-                    height: 600, 
-                    width: 600,
-                    decoration: BoxDecoration(
-                      color: Colors.transparent,
-                      border: Border.all(color: Colors.black, width: 2),
-                    ),
-                    child: Consumer<PlayerProvider>(
-                      builder: (context, playerProvider, child) {
-                        return Stack(
-                          children: playerProvider.players.values.map((player) {
-                            return PlayerWidget(
-                              player: player,
-                              containerWidth: 600,
-                              containerHeight: 600,
-                              gameWidth: 1000.0,  // Adjust this based on your actual game space width
-                              gameHeight: 1000.0, // Adjust this based on your actual game space height
-                            );
-                          }).toList(),
-                        );
-                      },
+                  child: Center(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.4,
+                      height: MediaQuery.of(context).size.width * 0.4,
+                      child: Stack(
+                        children: [
+                          // Game container
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              border: Border.all(color: Colors.black, width: 2),
+                            ),
+                          ),
+                          
+                          // Coordinate axes
+                          CustomPaint(
+                            size: Size(MediaQuery.of(context).size.width * 0.4, MediaQuery.of(context).size.width * 0.4),
+                            painter: CoordinatesPainter(),
+                          ),
+                          
+                          // Players and Keys
+                          Stack(
+                            children: [
+                              // Players
+                              Consumer<PlayerProvider>(
+                                builder: (context, playerProvider, child) {
+                                  return Stack(
+                                    children: playerProvider.players.values.map((player) {
+                                      return PlayerWidget(
+                                        player: player,
+                                        containerWidth: MediaQuery.of(context).size.width * 0.4,
+                                        containerHeight: MediaQuery.of(context).size.width * 0.4,
+                                        gameWidth: 1000.0,
+                                        gameHeight: 1000.0,
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                              
+                              // Keys
+                              Consumer<KeyProvider>(
+                                builder: (context, keyProvider, child) {
+                                  return Stack(
+                                    children: keyProvider.keys.values.map((key) {
+                                      return KeyWidget(
+                                        keyModel: key,
+                                        containerWidth: MediaQuery.of(context).size.width * 0.4,
+                                        containerHeight: MediaQuery.of(context).size.width * 0.4,
+                                        gameWidth: 1000.0,
+                                        gameHeight: 1000.0,
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -233,4 +280,32 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
       ),
     );
   }
+}
+
+// Add this class at the end of the file, outside of existing classes
+class CoordinatesPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.grey
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+      
+    // Draw X axis
+    canvas.drawLine(
+      Offset(0, size.height / 2),
+      Offset(size.width, size.height / 2),
+      paint,
+    );
+    
+    // Draw Y axis
+    canvas.drawLine(
+      Offset(size.width / 2, 0),
+      Offset(size.width / 2, size.height),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
