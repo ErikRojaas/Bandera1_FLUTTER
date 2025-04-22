@@ -107,12 +107,15 @@ class ServerUtils {
   }
 
   static void _handleServerMessage(ServerMessage message) {
-    print('Server message: ${message.data}');
+    print('Server message type: ${message.type}');
     final getIt = GetIt.instance;
     PlayerProvider playerProvider = getIt<PlayerProvider>();
     KeyProvider keyProvider = getIt<KeyProvider>();
     FlagProvider flagProvider = getIt<FlagProvider>();
     TimerProvider timerProvider = getIt<TimerProvider>();
+    
+    // Make sure the key provider is initialized
+    keyProvider.initialize();
     
     switch (message.type) {
       case 'update':
@@ -122,9 +125,13 @@ class ServerUtils {
         List<Map<String, dynamic>> flags = [];
         String? timer;
         
+        // Debug incoming data
+        print('Update data keys: ${data['keys']}');
+        
         if (data['players'] is List) {
           try {
             players = List<Map<String, dynamic>>.from(data['players']);
+            print('Received ${players.length} player(s)');
           } catch (e) {
             print('Error parsing players data: $e');
           }
@@ -133,17 +140,28 @@ class ServerUtils {
         if (data['flags'] is List) {
           try {
             flags = List<Map<String, dynamic>>.from(data['flags']);
+            print('Received ${flags.length} flag(s)');
           } catch (e) {
             print('Error parsing flags data: $e');
           }
         }
         
-        if (data['keys'] is List) {
+        // Process keys data
+        if (data.containsKey('keys')) {
           try {
-            keys = List<Map<String, dynamic>>.from(data['keys']);
+            if (data['keys'] is List) {
+              keys = List<Map<String, dynamic>>.from(data['keys']);
+              print('Received ${keys.length} key(s)');
+              // Update key provider with new data
+              keyProvider.update(keys);
+            } else {
+              print('Keys data is not a list: ${data['keys']}');
+            }
           } catch (e) {
-            print('Error parsing keys data: $e');
+            print('Error processing keys data: $e');
           }
+        } else {
+          print('No keys data in message, keys will remain unchanged');
         }
         
         // Check for timer data (from room.timer)
@@ -155,9 +173,8 @@ class ServerUtils {
           }
         }
         
-        // Update all providers with data
+        // Update other providers with data
         playerProvider.update(players);
-        keyProvider.update(keys);
         flagProvider.update(flags);
         if (timer != null) {
           timerProvider.updateTimer(timer);

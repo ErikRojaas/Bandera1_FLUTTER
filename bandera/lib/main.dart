@@ -24,6 +24,11 @@ void main() async {
   getIt.registerSingleton<FlagProvider>(FlagProvider());
   getIt.registerSingleton<TimerProvider>(TimerProvider());
 
+  // Initialize the key provider with a default key for testing
+  KeyProvider keyProvider = getIt<KeyProvider>();
+  keyProvider.initialize();
+  print('KeyProvider initialized with keys: ${keyProvider.keys}');
+
   ServerUtils.connectToServer(onDisconnect: () {
     print("Desconectado del servidor.");
   });
@@ -117,11 +122,11 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
                             color: Colors.black26,
                             blurRadius: 4,
-                            offset: const Offset(0, 2),
+                            offset: Offset(0, 2),
                           ),
                         ],
                       ),
@@ -175,12 +180,12 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                                 decoration: BoxDecoration(
                                   border: Border.all(color: Colors.blueAccent, width: 4),
                                   borderRadius: BorderRadius.circular(10),
-                                  boxShadow: [
+                                  boxShadow: const [
                                     BoxShadow(
                                       color: Colors.black26,
                                       blurRadius: 8,
                                       spreadRadius: 2,
-                                      offset: const Offset(4, 4),
+                                      offset: Offset(4, 4),
                                     ),
                                   ],
                                   color: Colors.white,
@@ -274,7 +279,42 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                           // Players and Keys
                           Stack(
                             children: [
-
+                              // Keys
+                              Consumer<KeyProvider>(
+                                builder: (context, keyProvider, child) {
+                                  print('KeyProvider Consumer rebuilding with ${keyProvider.keys.length} keys');
+                                  
+                                  if (keyProvider.keys.isEmpty) {
+                                    // If no keys, create a visual debug indicator
+                                    return Container(
+                                      width: 50,
+                                      height: 50,
+                                      color: Colors.red,
+                                      child: Center(
+                                        child: Text(
+                                          'No keys',
+                                          style: TextStyle(color: Colors.white, fontSize: 10),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  
+                                  return Stack(
+                                    children: keyProvider.keys.values.map((key) {
+                                      print('Creating KeyWidget for key: ${key.id}');
+                                      return KeyWidget(
+                                        keyModel: key,
+                                        containerWidth: MediaQuery.of(context).size.width * 0.4,
+                                        containerHeight: MediaQuery.of(context).size.width * 0.4,
+                                        gameWidth: 1000.0,
+                                        gameHeight: 1000.0,
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                              
+                              // Flags
                               Consumer<FlagProvider>(
                                 builder: (context, flagProvider, child) {
                                   return Stack(
@@ -290,6 +330,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                                   );
                                 },
                               ),
+                              
                               // Players
                               Consumer<PlayerProvider>(
                                 builder: (context, playerProvider, child) {
@@ -297,23 +338,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                                     children: playerProvider.players.values.map((player) {
                                       return PlayerWidget(
                                         player: player,
-                                        containerWidth: MediaQuery.of(context).size.width * 0.4,
-                                        containerHeight: MediaQuery.of(context).size.width * 0.4,
-                                        gameWidth: 1000.0,
-                                        gameHeight: 1000.0,
-                                      );
-                                    }).toList(),
-                                  );
-                                },
-                              ),
-                              
-                              // Keys
-                              Consumer<KeyProvider>(
-                                builder: (context, keyProvider, child) {
-                                  return Stack(
-                                    children: keyProvider.keys.values.map((key) {
-                                      return KeyWidget(
-                                        keyModel: key,
                                         containerWidth: MediaQuery.of(context).size.width * 0.4,
                                         containerHeight: MediaQuery.of(context).size.width * 0.4,
                                         gameWidth: 1000.0,

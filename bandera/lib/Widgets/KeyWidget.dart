@@ -1,8 +1,8 @@
+import 'package:bandera/Models/AnimationState.dart';
+import 'package:bandera/Models/SpriteSheetData.dart';
 import 'package:bandera/Widgets/AnimatedSpriteWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:bandera/Models/Key.dart' as KeyModel;
-import 'package:bandera/Models/SpriteSheetData.dart';
-import 'package:bandera/Models/AnimationState.dart';
 
 class KeyWidget extends StatelessWidget {
   final KeyModel.Key keyModel;
@@ -10,7 +10,7 @@ class KeyWidget extends StatelessWidget {
   final double containerHeight;
   final double gameWidth;  // Width of the game space
   final double gameHeight; // Height of the game space
-  
+
   final SpriteSheetData spriteSheetData = SpriteSheetData(
     spriteSheetPath: 'assets/images/key.png',
     frameHeight: 32,
@@ -29,7 +29,10 @@ class KeyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double scale = 0.15;
+    // Debug print to see if the widget is being created
+    print('Building KeyWidget for key: ${keyModel.id} at (${keyModel.x}, ${keyModel.y})');
+    
+    const double keySize = 30.0; // Fixed size for the key
 
     final double centerX = containerWidth / 2;
     final double centerY = containerHeight / 2;
@@ -37,25 +40,22 @@ class KeyWidget extends StatelessWidget {
     final double posX = centerX + (keyModel.x * scaleFactor);
     final double posY = centerY - (keyModel.y * scaleFactor); // Invert Y-axis
   
-    const width = 100.0 * scale;
-    const height = 100.0 * scale;
+    print('Key position: left=${posX - (keySize / 2)}, top=${posY - (keySize / 2)}');
 
     return Positioned(
-      left: posX - (width / 2),
-      top: posY - (height / 2),
+      left: posX - (keySize / 2),
+      top: posY - (keySize / 2),
       child: Container(
-        width: width,
-        height: height,
-        child: Center(
-          child: AnimatedSpriteWidget(
+        width: keySize,
+        height: keySize,
+        child: AnimatedSpriteWidget(
             spriteSheetData: [spriteSheetData],
             animations: {
               'idle': AnimationState(spriteSheetIndex: 0, startFrame: 0, endFrame: 23),
             },
             currentAnimation: 'idle',
-            frameDuration: const Duration(milliseconds: 150),
+            frameDuration: const Duration(milliseconds: 200),
           ),
-        ),
       ),
     );
   }

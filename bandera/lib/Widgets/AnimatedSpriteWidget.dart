@@ -60,18 +60,26 @@ class _AnimatedSpriteWidgetState extends State<AnimatedSpriteWidget> with Single
     
     for (int i = 0; i < widget.spriteSheetData.length; i++) {
       final data = widget.spriteSheetData[i];
+      print('Loading image: ${data.spriteSheetPath}');
+      
       final imageProvider = AssetImage(data.spriteSheetPath);
       final imageStream = imageProvider.resolve(ImageConfiguration());
       final completer = Completer<ui.Image>();
       
       final listener = ImageStreamListener((ImageInfo info, bool _) {
+        print('Image loaded successfully: ${data.spriteSheetPath}');
         completer.complete(info.image);
+      }, onError: (exception, stackTrace) {
+        print('Error loading image ${data.spriteSheetPath}: $exception');
+        print(stackTrace);
+        completer.completeError(exception);
       });
       
       imageStream.addListener(listener);
       
       try {
         _loadedImages[i] = await completer.future;
+        print('Image assigned to loadedImages: ${data.spriteSheetPath}');
         imageStream.removeListener(listener);
       } catch (e) {
         print('Error loading image ${data.spriteSheetPath}: $e');
@@ -81,6 +89,8 @@ class _AnimatedSpriteWidgetState extends State<AnimatedSpriteWidget> with Single
     if (mounted) {
       setState(() {
         _isLoading = false;
+        print('AnimatedSpriteWidget loading finished, isLoading: $_isLoading');
+        print('Loaded images count: ${_loadedImages.where((img) => img != null).length}/${_loadedImages.length}');
       });
     }
   }
@@ -121,7 +131,13 @@ class _AnimatedSpriteWidgetState extends State<AnimatedSpriteWidget> with Single
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const SizedBox.shrink();
+      print('AnimatedSpriteWidget is still loading, returning empty widget');
+      return Container(
+        width: 20,
+        height: 20,
+        color: Colors.yellow,
+        child: const Center(child: Text('Loading...', style: TextStyle(fontSize: 8))),
+      );
     }
 
     final animation = widget.animations[widget.currentAnimation]!;
@@ -131,7 +147,13 @@ class _AnimatedSpriteWidgetState extends State<AnimatedSpriteWidget> with Single
     final spriteSheet = _loadedImages[spriteSheetIndex];
     
     if (spriteSheet == null) {
-      return const SizedBox.shrink();
+      print('Sprite sheet is null for ${spriteSheetData.spriteSheetPath}, animation: ${widget.currentAnimation}');
+      return Container(
+        width: 20,
+        height: 20,
+        color: Colors.red,
+        child: const Center(child: Text('No image', style: TextStyle(fontSize: 8))),
+      );
     }
     
     final row = (frame / spriteSheetData.framesPerRow).floor();
