@@ -6,31 +6,24 @@ class PlayerProvider extends ChangeNotifier {
   Map<String, Player> players = {};
   
   void addPlayer(Player player) {
-    // Only add if not a key
-    if (!player.id.toString().startsWith('key_')) {
-      players[player.id] = player;
-      notifyListeners();
-    }
+    players[player.id] = player;
+    notifyListeners();
   }
 
   void removePlayer(String id) {
-    if (!id.toString().startsWith('key_')) {
-      players.remove(id);
-      notifyListeners();
-    }
+    players.remove(id);
+    notifyListeners();
   }
 
   void updatePlayer(String id, Player player) {
-    if (!id.toString().startsWith('key_') && players.containsKey(id)) {
-      players[id]!.x = player.x;
-      players[id]!.y = player.y;
-      players[id]!.skinId = player.skinId;
-      players[id]!.action = player.action;
-      if (player.direction != null) {
-        players[id]!.direction = player.direction;
-      }
-      notifyListeners();
+    players[id]!.x = player.x;
+    players[id]!.y = player.y;
+    players[id]!.skinId = player.skinId;
+    players[id]!.action = player.action;
+    if (player.direction != null) {
+      players[id]!.direction = player.direction;
     }
+    notifyListeners();
   }
 
   void update(List<Map<String, dynamic>> playerEntities) {

@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:bandera/Providers/FlagProvider.dart';
 import 'package:bandera/Providers/PlayerProvider.dart';
 import 'package:bandera/Providers/KeyProvider.dart';
+import 'package:bandera/Providers/TimerProvider.dart';
 import 'package:get_it/get_it.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/html.dart' as html;
@@ -109,18 +111,30 @@ class ServerUtils {
     final getIt = GetIt.instance;
     PlayerProvider playerProvider = getIt<PlayerProvider>();
     KeyProvider keyProvider = getIt<KeyProvider>();
+    FlagProvider flagProvider = getIt<FlagProvider>();
+    TimerProvider timerProvider = getIt<TimerProvider>();
     
     switch (message.type) {
       case 'update':
         Map<String, dynamic> data = message.data;
         List<Map<String, dynamic>> players = [];
         List<Map<String, dynamic>> keys = [];
+        List<Map<String, dynamic>> flags = [];
+        String? timer;
         
         if (data['players'] is List) {
           try {
             players = List<Map<String, dynamic>>.from(data['players']);
           } catch (e) {
             print('Error parsing players data: $e');
+          }
+        }
+
+        if (data['flags'] is List) {
+          try {
+            flags = List<Map<String, dynamic>>.from(data['flags']);
+          } catch (e) {
+            print('Error parsing flags data: $e');
           }
         }
         
@@ -132,9 +146,22 @@ class ServerUtils {
           }
         }
         
-        // Update both providers with all objects
+        // Check for timer data (from room.timer)
+        if (data['room'] != null && data['room']['timer'] != null) {
+          try {
+            timer = data['room']['timer'] as String;
+          } catch (e) {
+            print('Error parsing timer data: $e');
+          }
+        }
+        
+        // Update all providers with data
         playerProvider.update(players);
         keyProvider.update(keys);
+        flagProvider.update(flags);
+        if (timer != null) {
+          timerProvider.updateTimer(timer);
+        }
         break;
     }
   }

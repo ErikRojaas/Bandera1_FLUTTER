@@ -6,6 +6,9 @@ import 'package:bandera/Providers/PlayerProvider.dart';
 import 'package:bandera/Providers/KeyProvider.dart';
 import 'package:bandera/Widgets/PlayerWidget.dart';
 import 'package:bandera/Widgets/KeyWidget.dart';
+import 'package:bandera/Widgets/FlagWidget.dart';
+import 'package:bandera/Providers/FlagProvider.dart';
+import 'package:bandera/Providers/TimerProvider.dart';
 import 'package:flame/flame.dart';
 
 void main() async {
@@ -18,6 +21,8 @@ void main() async {
   final getIt = GetIt.instance;
   getIt.registerSingleton<PlayerProvider>(PlayerProvider());
   getIt.registerSingleton<KeyProvider>(KeyProvider());
+  getIt.registerSingleton<FlagProvider>(FlagProvider());
+  getIt.registerSingleton<TimerProvider>(TimerProvider());
 
   ServerUtils.connectToServer(onDisconnect: () {
     print("Desconectado del servidor.");
@@ -27,6 +32,8 @@ void main() async {
     providers: [
       ChangeNotifierProvider(create: (_) => getIt<PlayerProvider>()),
       ChangeNotifierProvider(create: (_) => getIt<KeyProvider>()),
+      ChangeNotifierProvider(create: (_) => getIt<FlagProvider>()),
+      ChangeNotifierProvider(create: (_) => getIt<TimerProvider>()),
     ],
     child: const MyApp(),
   ));
@@ -98,6 +105,40 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
           ),
           backgroundColor: Colors.blueAccent,
           centerTitle: true,
+          actions: [
+            // Timer display in appbar
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Center(
+                child: Consumer<TimerProvider>(
+                  builder: (context, timerProvider, child) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        timerProvider.formattedTimer,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
@@ -233,6 +274,22 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                           // Players and Keys
                           Stack(
                             children: [
+
+                              Consumer<FlagProvider>(
+                                builder: (context, flagProvider, child) {
+                                  return Stack(
+                                    children: flagProvider.flags.values.map((flag) {
+                                      return FlagWidget(
+                                        flag: flag,
+                                        containerWidth: MediaQuery.of(context).size.width * 0.4,
+                                        containerHeight: MediaQuery.of(context).size.width * 0.4,
+                                        gameWidth: 1000.0,
+                                        gameHeight: 1000.0,
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
                               // Players
                               Consumer<PlayerProvider>(
                                 builder: (context, playerProvider, child) {
