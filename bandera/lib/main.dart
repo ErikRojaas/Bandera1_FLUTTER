@@ -16,7 +16,7 @@ void main() async {
 
   // Initialize Flame and load images
   await Flame.device.fullScreen();
-  await Flame.images.loadAll(['key.png']);  // Just the filename, not the path
+  await Flame.images.loadAll(['key.png', 'background.png']);  // Added background.png
 
   final getIt = GetIt.instance;
   getIt.registerSingleton<PlayerProvider>(PlayerProvider());
@@ -262,6 +262,18 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                       height: MediaQuery.of(context).size.width * 0.4,
                       child: Stack(
                         children: [
+                          // Background image
+                          Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            decoration: const BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage('assets/images/background.png'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          
                           // Game container
                           Container(
                             decoration: BoxDecoration(
