@@ -94,7 +94,6 @@ class ServerUtils {
   }
 
   static void _handleRawMessage(dynamic data) {
-    print("data: " + data.toString());
     try {
       final String stringData = data.toString();
       final Map<String, dynamic> jsonData = jsonDecode(stringData);
@@ -106,6 +105,7 @@ class ServerUtils {
   }
 
   static void _handleServerMessage(ServerMessage message) {
+    print('Server message: ${message.data}');
     final getIt = GetIt.instance;
     PlayerProvider playerProvider = getIt<PlayerProvider>();
     KeyProvider keyProvider = getIt<KeyProvider>();
@@ -113,39 +113,28 @@ class ServerUtils {
     switch (message.type) {
       case 'update':
         Map<String, dynamic> data = message.data;
-        List<Map<String, dynamic>> allObjects = [];
+        List<Map<String, dynamic>> players = [];
+        List<Map<String, dynamic>> keys = [];
         
-        // Process players data
         if (data['players'] is List) {
           try {
-            List<Map<String, dynamic>> players = List<Map<String, dynamic>>.from(data['players']);
-            allObjects.addAll(players);
+            players = List<Map<String, dynamic>>.from(data['players']);
           } catch (e) {
             print('Error parsing players data: $e');
           }
         }
         
-        // Process keys data
         if (data['keys'] is List) {
           try {
-            List<Map<String, dynamic>> keys = List<Map<String, dynamic>>.from(data['keys']);
-            // Convert keys to player format with special ID prefix
-            List<Map<String, dynamic>> keyPlayers = keys.map((key) {
-              return {
-                'id': 'key_${key['id']}',
-                'x': key['x'],
-                'y': key['y']
-              };
-            }).toList();
-            allObjects.addAll(keyPlayers);
+            keys = List<Map<String, dynamic>>.from(data['keys']);
           } catch (e) {
             print('Error parsing keys data: $e');
           }
         }
         
         // Update both providers with all objects
-        playerProvider.update(allObjects);
-        keyProvider.update(allObjects);
+        playerProvider.update(players);
+        keyProvider.update(keys);
         break;
     }
   }

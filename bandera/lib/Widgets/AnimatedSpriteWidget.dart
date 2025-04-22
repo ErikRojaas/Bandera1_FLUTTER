@@ -1,11 +1,12 @@
+import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
+import 'package:bandera/Models/AnimationState.dart';
+import 'package:bandera/Models/SpriteSheetData.dart';
 import 'dart:ui' as ui;
+import 'dart:async';
 
 class AnimatedSpriteWidget extends StatefulWidget {
-  final ui.Image spriteSheet;
-  final int frameWidth;
-  final int frameHeight;
-  final int framesPerRow;
+  final List<SpriteSheetData> spriteSheetData;
   final Map<String, AnimationState> animations;
   final String currentAnimation;
   final Duration frameDuration;
@@ -13,10 +14,7 @@ class AnimatedSpriteWidget extends StatefulWidget {
 
   const AnimatedSpriteWidget({
     Key? key,
-    required this.spriteSheet,
-    required this.frameWidth,
-    required this.frameHeight,
-    required this.framesPerRow,
+    required this.spriteSheetData,
     required this.animations,
     required this.currentAnimation,
     this.frameDuration = const Duration(milliseconds: 100),
@@ -27,24 +25,17 @@ class AnimatedSpriteWidget extends StatefulWidget {
   State<AnimatedSpriteWidget> createState() => _AnimatedSpriteWidgetState();
 }
 
-class AnimationState {
-  final int startFrame;
-  final int endFrame;
-
-  AnimationState({
-    required this.startFrame,
-    required this.endFrame,
-  });
-}
-
 class _AnimatedSpriteWidgetState extends State<AnimatedSpriteWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
   int _currentFrame = 0;
+  List<ui.Image?> _loadedImages = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _loadImages();
     _controller = AnimationController(
       vsync: this,
       duration: widget.frameDuration * _getFrameCount(),
@@ -64,10 +55,44 @@ class _AnimatedSpriteWidgetState extends State<AnimatedSpriteWidget> with Single
     }
   }
 
-  int _getFrameCount() {
-    final animation = widget.animations[widget.currentAnimation]!;
-    return animation.endFrame - animation.startFrame + 1;
+  Future<void> _loadImages() async {
+    _loadedImages = List.filled(widget.spriteSheetData.length, null);
+    
+    for (int i = 0; i < widget.spriteSheetData.length; i++) {
+      final data = widget.spriteSheetData[i];
+      final imageProvider = AssetImage(data.spriteSheetPath);
+      final imageStream = imageProvider.resolve(ImageConfiguration());
+      final completer = Completer<ui.Image>();
+      
+      final listener = ImageStreamListener((ImageInfo info, bool _) {
+        completer.complete(info.image);
+      });
+      
+      imageStream.addListener(listener);
+      
+      try {
+        _loadedImages[i] = await completer.future;
+        imageStream.removeListener(listener);
+      } catch (e) {
+        print('Error loading image ${data.spriteSheetPath}: $e');
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
+
+  int _getFrameCount() {
+  final animationState = widget.animations[widget.currentAnimation];
+  if (animationState == null) {
+    print('Warning: Animation "${widget.currentAnimation}" not found');
+    return 1;
+  }
+  return animationState.endFrame - animationState.startFrame + 1;
+}
 
   @override
   void didUpdateWidget(AnimatedSpriteWidget oldWidget) {
@@ -89,19 +114,38 @@ class _AnimatedSpriteWidgetState extends State<AnimatedSpriteWidget> with Single
     super.dispose();
   }
 
+  int _getCurrentSpriteSheetIndex() {
+    return widget.animations[widget.currentAnimation]!.spriteSheetIndex;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const SizedBox.shrink();
+    }
+
     final animation = widget.animations[widget.currentAnimation]!;
     final frame = animation.startFrame + _currentFrame;
-    final row = (frame / widget.framesPerRow).floor();
-    final column = frame % widget.framesPerRow;
+    final spriteSheetIndex = _getCurrentSpriteSheetIndex();
+    final spriteSheetData = widget.spriteSheetData[spriteSheetIndex];
+    final spriteSheet = _loadedImages[spriteSheetIndex];
+    
+    if (spriteSheet == null) {
+      return const SizedBox.shrink();
+    }
+    
+    final row = (frame / spriteSheetData.framesPerRow).floor();
+    final column = frame % spriteSheetData.framesPerRow;
 
     return CustomPaint(
-      size: Size(widget.frameWidth.toDouble(), widget.frameHeight.toDouble()),
+      size: Size(
+        spriteSheetData.frameWidth.toDouble(),
+        spriteSheetData.frameHeight.toDouble()
+      ),
       painter: SpritePainter(
-        spriteSheet: widget.spriteSheet,
-        frameWidth: widget.frameWidth,
-        frameHeight: widget.frameHeight,
+        spriteSheet: spriteSheet,
+        frameWidth: spriteSheetData.frameWidth,
+        frameHeight: spriteSheetData.frameHeight,
         row: row,
         column: column,
       ),
@@ -132,7 +176,7 @@ class SpritePainter extends CustomPainter {
       frameWidth.toDouble(),
       frameHeight.toDouble(),
     );
-
+    
     final dst = Rect.fromLTWH(0, 0, size.width, size.height);
 
     canvas.drawImageRect(spriteSheet, src, dst, Paint());

@@ -1,6 +1,5 @@
 import 'package:bandera/Models/Player.dart';
 import 'package:flutter/material.dart';
-import 'package:bandera/Models/ServerMessage.dart';
 
 class PlayerProvider extends ChangeNotifier {
   
@@ -25,29 +24,39 @@ class PlayerProvider extends ChangeNotifier {
     if (!id.toString().startsWith('key_') && players.containsKey(id)) {
       players[id]!.x = player.x;
       players[id]!.y = player.y;
+      players[id]!.skinId = player.skinId;
+      players[id]!.action = player.action;
+      if (player.direction != null) {
+        players[id]!.direction = player.direction;
+      }
       notifyListeners();
     }
   }
 
-  void update(List<Map<String, dynamic>> entities) {
-    // Filter out keys
-    final playerEntities = entities.where((entity) => 
-      !entity['id'].toString().startsWith('key_')).toList();
-    
-    // Create sets of current and incoming IDs
+  void update(List<Map<String, dynamic>> playerEntities) {
+
     Set<String> currentPlayerIds = players.keys.toSet();
     Set<String> incomingPlayerIds = playerEntities.map((e) => e['id'].toString()).toSet();
-    
-    // Remove players no longer in the list
+
     currentPlayerIds.difference(incomingPlayerIds).forEach((id) {
-      players.remove(id);
+      removePlayer(id);
     });
 
-    // Add or update entities
     for (var entity in playerEntities) {
       String id = entity['id'].toString();
-      Player player = Player(id, entity['x'], entity['y']);
-      players[id] = player;
+      double x = entity['x'].toDouble();
+      double y = entity['y'].toDouble();
+      int skinId = entity['skinId'];
+      Map<String, dynamic> moveVector = entity['moveVector'];
+      Direction? direction = Player.getDirectionFromJson(moveVector);
+      if (currentPlayerIds.contains(id)) {
+        Player player = Player(id, skinId, x, y, direction, direction == null ? PlayerAction.idle : PlayerAction.walk);
+        updatePlayer(id, player);
+      } else {
+
+        Player player = Player(id, skinId, x, y, direction ?? Direction.down, direction == null ? PlayerAction.idle : PlayerAction.walk);
+        addPlayer(player);
+      }
     }
     
     notifyListeners();

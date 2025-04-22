@@ -92,7 +92,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
           title: const Text(
             "BANDERA 1",
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),

@@ -25,13 +25,7 @@ class KeyProvider extends ChangeNotifier {
     }
   }
 
-  void update(List<Map<String, dynamic>> entities) {
-    
-    // Filter only keys
-    final keyEntities = entities.where((entity) => 
-      entity['id'].toString().startsWith('key_')).toList();
-    
-    // Create sets of current and incoming IDs
+  void update(List<Map<String, dynamic>> keyEntities) {
     Set<String> currentKeyIds = keys.keys.toSet();
     Set<String> incomingKeyIds = keyEntities.map((e) => e['id'].toString()).toSet();
     
@@ -43,8 +37,8 @@ class KeyProvider extends ChangeNotifier {
     // Add or update entities
     for (var entity in keyEntities) {
       String id = entity['id'].toString();
-      double x = (entity['x'] as num).toDouble();
-      double y = (entity['y'] as num).toDouble();
+      double x = entity['x'].toDouble();
+      double y = entity['y'].toDouble();
       
       
       KeyModel.Key key = KeyModel.Key(id, x, y);
