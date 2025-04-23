@@ -205,50 +205,6 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                             );
                           },
                         ),
-
-                        const SizedBox(height: 30),
-
-                        // Botón con círculo animado
-                        Stack(
-                          clipBehavior: Clip.none,
-                          alignment: Alignment.center,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                print("Ir a Ver Partida en Directo");
-                              },
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                backgroundColor: Colors.blueAccent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                elevation: 5,
-                              ),
-                              child: const Text(
-                                "Ver Partida en Directo",
-                                style: TextStyle(fontSize: 16, color: Colors.white),
-                              ),
-                            ),
-                            Positioned(
-                              top: -8,
-                              left: -8,
-                              child: AnimatedBuilder(
-                                animation: _colorAnimation,
-                                builder: (context, child) {
-                                  return Container(
-                                    width: 18,
-                                    height: 18,
-                                    decoration: BoxDecoration(
-                                      color: _colorAnimation.value,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),

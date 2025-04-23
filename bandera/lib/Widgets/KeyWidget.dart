@@ -32,7 +32,7 @@ class KeyWidget extends StatelessWidget {
     // Debug print to see if the widget is being created
     print('Building KeyWidget for key: ${keyModel.id} at (${keyModel.x}, ${keyModel.y})');
     
-    const double keySize = 30.0; // Fixed size for the key
+    const double keySize = 10.0; // Fixed size for the key
 
     final double centerX = containerWidth / 2;
     final double centerY = containerHeight / 2;

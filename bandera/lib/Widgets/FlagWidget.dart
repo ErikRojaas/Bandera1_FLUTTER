@@ -29,7 +29,7 @@ class FlagWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double scale = 0.8;
+    const double scale = 0.3;
 
     final double centerX = containerWidth / 2;
     final double centerY = containerHeight / 2;
