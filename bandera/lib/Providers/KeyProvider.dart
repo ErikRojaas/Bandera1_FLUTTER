@@ -9,7 +9,6 @@ class KeyProvider extends ChangeNotifier {
   // Initialize with a default key if needed
   void initialize() {
     if (!_initialized && keys.isEmpty) {
-      print('Initializing with default key');
       // Add a default key at the center
       KeyModel.Key defaultKey = KeyModel.Key('default_key', 0, 0);
       addKey(defaultKey);
@@ -18,13 +17,11 @@ class KeyProvider extends ChangeNotifier {
   }
   
   void addKey(KeyModel.Key key) {
-    print('Adding key: ${key.id} at (${key.x}, ${key.y})');
     keys[key.id] = key;
     notifyListeners();
   }
 
   void removeKey(String id) {
-    print('Removing key: $id');
     keys.remove(id);
     notifyListeners();
   }
@@ -44,16 +41,12 @@ class KeyProvider extends ChangeNotifier {
     // If the update list is empty but we previously had server-sent keys
     // (not just our default key), preserve the existing keys
     if (keyEntities.isEmpty) {
-      print('Received empty keys list - preserving existing keys');
       return;
     }
 
     Set<String> currentKeyIds = keys.keys.toSet();
     Set<String> incomingKeyIds = keyEntities.map((e) => e['id'].toString()).toSet();
-    
-    // Debug information
-    print('Current keys: $currentKeyIds');
-    print('Incoming keys: $incomingKeyIds');
+  
     
     // Remove keys no longer in the list
     currentKeyIds.difference(incomingKeyIds).forEach((id) {
@@ -76,7 +69,6 @@ class KeyProvider extends ChangeNotifier {
     
     // If we somehow ended up with no keys, add the default key back
     if (keys.isEmpty) {
-      print('No keys after update, adding default key');
       initialize();
     }
     

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 
 enum Direction { up, down, left, right }
 
@@ -6,6 +7,7 @@ enum PlayerAction { idle, walk }
 class Player {
   String id;
   int skinId;
+  String nickname;
   double x;
   double y;
   Direction? direction;
@@ -14,6 +16,7 @@ class Player {
   Player(
     this.id,
     this.skinId,
+    this.nickname,
     this.x,
     this.y,
     this.direction,
@@ -35,27 +38,29 @@ class Player {
 
   getAnimation() {
     String actionString = '';
-  String directionString = '';
-  
-  // Convert action enum to string
-  if (action == PlayerAction.idle) {
-    actionString = 'idle';
-  } else if (action == PlayerAction.walk) {
-    actionString = 'walk';
-  }
-  
-  // Convert direction enum to string
-  if (direction == Direction.up) {
-    directionString = 'up';
-  } else if (direction == Direction.down) {
-    directionString = 'down';
-  } else if (direction == Direction.left) {
-    directionString = 'left';
-  } else if (direction == Direction.right) {
-    directionString = 'right';
-  }
-  
-  // Combine with underscore format
-  return '${actionString}_${directionString}';
+    String directionString = '';
+    
+    // Convert action enum to string
+    if (action == PlayerAction.idle) {
+      actionString = 'idle';
+    } else if (action == PlayerAction.walk) {
+      actionString = 'walk';
+    }
+    
+    // Convert direction enum to string
+    if (direction == Direction.up) {
+      directionString = 'up';
+    } else if (direction == Direction.down) {
+      directionString = 'down';
+    } else if (direction == Direction.left) {
+      directionString = 'left';
+    } else if (direction == Direction.right) {
+      directionString = 'right';
+    }
+    if (actionString == '' || directionString == '') {
+      print('Error: Player action or direction is empty');
+    }
+    // Combine with underscore format
+    return '${actionString}_${directionString}';
   }
 }

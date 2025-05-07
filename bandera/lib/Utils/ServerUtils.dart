@@ -25,8 +25,8 @@ class ServerUtils {
     }
   }
   // static const String host = "localhost";
-  // static const int port = 8080;
-  static const int port = 443;
+ static const int port = 8081;
+ // static const int port = 443;
 
   static WebSocketChannel? _channel;
   static StreamSubscription<dynamic>? _subscription;
@@ -107,7 +107,6 @@ class ServerUtils {
   }
 
   static void _handleServerMessage(ServerMessage message) {
-    print('Server message type: ${message.type}');
     final getIt = GetIt.instance;
     PlayerProvider playerProvider = getIt<PlayerProvider>();
     KeyProvider keyProvider = getIt<KeyProvider>();
@@ -125,13 +124,10 @@ class ServerUtils {
         List<Map<String, dynamic>> flags = [];
         String? timer;
         
-        // Debug incoming data
-        print('Update data keys: ${data['keys']}');
-        
         if (data['players'] is List) {
           try {
+            print(data['players']);
             players = List<Map<String, dynamic>>.from(data['players']);
-            print('Received ${players.length} player(s)');
           } catch (e) {
             print('Error parsing players data: $e');
           }
@@ -140,7 +136,6 @@ class ServerUtils {
         if (data['flags'] is List) {
           try {
             flags = List<Map<String, dynamic>>.from(data['flags']);
-            print('Received ${flags.length} flag(s)');
           } catch (e) {
             print('Error parsing flags data: $e');
           }
@@ -151,7 +146,6 @@ class ServerUtils {
           try {
             if (data['keys'] is List) {
               keys = List<Map<String, dynamic>>.from(data['keys']);
-              print('Received ${keys.length} key(s)');
               // Update key provider with new data
               keyProvider.update(keys);
             } else {
@@ -161,7 +155,6 @@ class ServerUtils {
             print('Error processing keys data: $e');
           }
         } else {
-          print('No keys data in message, keys will remain unchanged');
         }
         
         // Check for timer data (from room.timer)
@@ -172,7 +165,7 @@ class ServerUtils {
             print('Error parsing timer data: $e');
           }
         }
-        
+        print('players: $players');
         // Update other providers with data
         playerProvider.update(players);
         flagProvider.update(flags);

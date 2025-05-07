@@ -274,8 +274,8 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                                         keyModel: key,
                                         containerWidth: MediaQuery.of(context).size.width * 0.4,
                                         containerHeight: MediaQuery.of(context).size.width * 0.4,
-                                        gameWidth: 1000.0,
-                                        gameHeight: 1000.0,
+                                        gameWidth: 4550.0,
+                                        gameHeight: 3500.0,
                                       );
                                     }).toList(),
                                   );
@@ -291,8 +291,8 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                                         flag: flag,
                                         containerWidth: MediaQuery.of(context).size.width * 0.4,
                                         containerHeight: MediaQuery.of(context).size.width * 0.4,
-                                        gameWidth: 1000.0,
-                                        gameHeight: 1000.0,
+                                        gameWidth: 4550.0,
+                                        gameHeight: 3500.0,
                                       );
                                     }).toList(),
                                   );
@@ -308,8 +308,8 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
                                         player: player,
                                         containerWidth: MediaQuery.of(context).size.width * 0.4,
                                         containerHeight: MediaQuery.of(context).size.width * 0.4,
-                                        gameWidth: 1000.0,
-                                        gameHeight: 1000.0,
+                                        gameWidth: 4550.0,
+                                        gameHeight: 3500.0,
                                       );
                                     }).toList(),
                                   );

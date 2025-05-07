@@ -19,6 +19,7 @@ class PlayerProvider extends ChangeNotifier {
     players[id]!.x = player.x;
     players[id]!.y = player.y;
     players[id]!.skinId = player.skinId;
+    players[id]!.nickname = player.nickname;
     players[id]!.action = player.action;
     if (player.direction != null) {
       players[id]!.direction = player.direction;
@@ -27,7 +28,7 @@ class PlayerProvider extends ChangeNotifier {
   }
 
   void update(List<Map<String, dynamic>> playerEntities) {
-
+    print('PlayerProvider.update: Processing ${playerEntities.length} player(s)');
     Set<String> currentPlayerIds = players.keys.toSet();
     Set<String> incomingPlayerIds = playerEntities.map((e) => e['id'].toString()).toSet();
 
@@ -39,15 +40,16 @@ class PlayerProvider extends ChangeNotifier {
       String id = entity['id'].toString();
       double x = entity['x'].toDouble();
       double y = entity['y'].toDouble();
+      String nickname = entity['nickname'].toString();
+      print('PlayerProvider.update: Processing entity ID: $id, Nickname: $nickname, Extracted x: $x, Extracted y: $y');
       int skinId = entity['skinId'];
       Map<String, dynamic> moveVector = entity['moveVector'];
       Direction? direction = Player.getDirectionFromJson(moveVector);
       if (currentPlayerIds.contains(id)) {
-        Player player = Player(id, skinId, x, y, direction, direction == null ? PlayerAction.idle : PlayerAction.walk);
+        Player player = Player(id, skinId, nickname, x, y, direction, direction == null ? PlayerAction.idle : PlayerAction.walk);
         updatePlayer(id, player);
       } else {
-
-        Player player = Player(id, skinId, x, y, direction ?? Direction.down, direction == null ? PlayerAction.idle : PlayerAction.walk);
+        Player player = Player(id, skinId, nickname, x, y, direction ?? Direction.down, direction == null ? PlayerAction.idle : PlayerAction.walk);
         addPlayer(player);
       }
     }
